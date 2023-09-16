@@ -287,6 +287,12 @@ class GameState():
                     else:
                         self.blackKingLocation = (r, c)
 
+    class CastleRight():
+        def __init__(self, wks, bks, wqs, bqs):
+            self.wks = wks
+            self.bks = bks
+            self.wqs = wqs
+            self.bqs = bqs
     def checkForPinssAndChecks(self):
         pins = []
         checks = []
