@@ -5,7 +5,7 @@ import EngineChess
 WIDTH = HEIGHT = 512
 DIMENSION = 8
 SQ_SIZE = HEIGHT/DIMENSION
-MAX_FPS = 15
+MAX_FPS = 60
 IMAGES = {}
 
 
@@ -23,6 +23,7 @@ def main():
     gs = EngineChess.GameState()
     validMoves = gs.getValidMoves()
     moveMade = False
+    animate = False
     loadImages()
     running = True
     sqSelected = ()
@@ -48,6 +49,7 @@ def main():
                         if move == validMoves[i]:
                             gs.makeMove(validMoves[i])
                             moveMade = True
+                            animate = True
                             sqSelected = ()
                             playerClicks = []
                     if not moveMade:
@@ -57,10 +59,14 @@ def main():
                 if e.key == p.K_z: # undo press 'z'
                     gs.undoMove()
                     moveMade = True
+                    animate = False
 
         if moveMade:
+            if animate:
+                animateMove(gs.moveLog[-1], screen, gs.board, clock)
             validMoves = gs.getValidMoves()
             moveMade = False
+            animate = False
 
         drawGameState(screen, gs, validMoves, sqSelected)
         clock.tick(MAX_FPS)
@@ -85,6 +91,7 @@ def drawGameState(screen,gs, validMoves, sqSelected):
     drawPieces(screen,gs.board)
 
 def drawBoard(screen):
+    global colors
     colors = [p.Color("white"), p.Color("darkgray")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
@@ -99,6 +106,27 @@ def drawPieces(screen, board):
             piece = board[r][c]
             if piece != "--":
                 screen.blit(IMAGES[piece], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+
+def animateMove(move, screen, board, clock):
+    global colors
+    dR = move.endRow - move.startRow
+    dC = move.endCol - move.startCol
+    framesPerSquare = 10
+    framesCount = (abs(dR) + abs(dC)) * framesPerSquare
+    for frame in range(framesCount + 1):
+        r, c = (move.startRow + dR*frame/framesCount, move.startCol + dC*frame/framesCount)
+        drawBoard(screen)
+        drawPieces(screen, board)
+        color = colors[(move.endRow + move.endCol) % 2]
+        endSquare = p.Rect(move.endCol*SQ_SIZE, move.endRow*SQ_SIZE, SQ_SIZE, SQ_SIZE)
+        p.draw.rect(screen, color, endSquare)
+
+        if move.pieceCaptured != '--':
+            screen.blit(IMAGES[move.pieceCaptured], endSquare)
+
+        screen.blit(IMAGES[move.pieceMoved], p.Rect(c*SQ_SIZE, r*SQ_SIZE, SQ_SIZE, SQ_SIZE))
+        p.display.flip()
+        clock.tick(110)
 
 if __name__ == "__main__":
     main()
