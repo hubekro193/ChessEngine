@@ -46,6 +46,7 @@ class GameState():
         else:
             self.enpassantPossible = ()
 
+
         if move.isCastleMove:
             if move.endCol - move.startCol == 2:
                 self.board[move.endRow][move.endCol-1] = self.board[move.endRow][move.endCol+1]
@@ -73,7 +74,7 @@ class GameState():
 
             if move.isEnpassantMove:
                 self.board[move.endRow][move.endCol] = '--'
-                self.board[move.startRow][move.startCol] = move.pieceCaptured
+                self.board[move.startRow][move.endCol] = move.pieceCaptured
                 self.enpassantPossible = (move.endRow, move.endCol)
             if move.pieceMoved[1] == 'p' and abs(move.startRow - move.endRow) == 2:
                 self.enpassantPossible = ()
@@ -115,7 +116,7 @@ class GameState():
         tempEnpassantPossible = self.enpassantPossible
         tempCastleRights = CastleRights(self.currentCastlingRight.wks, self.currentCastlingRight.bks,
                                         self.currentCastlingRight.wqs, self.currentCastlingRight.bqs)
-        moves =  self.getAllPossibleMoves()
+        moves = self.getAllPossibleMoves()
 
         for i in range(len(moves)-1, -1, -1):
             self.makeMove(moves[i])
