@@ -29,7 +29,7 @@ def main():
     sqSelected = ()
     playerClicks = []
     gameOver = False
-    playerOne = False
+    playerOne = True
     playerTwo = False
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
@@ -74,7 +74,9 @@ def main():
                     animate = False
 
         if not gameOver and not humanTurn:
-            AIMove = ChessAI.findRandomMove(validMoves)
+            AIMove = ChessAI.findBestMove(gs, validMoves)
+            if AIMove is None:
+                AIMove = ChessAI.findRandomMove(validMoves)
             gs.makeMove(AIMove)
             moveMade = True
             animate = True
