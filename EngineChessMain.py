@@ -5,7 +5,7 @@ import EngineChess, ChessAI
 WIDTH = HEIGHT = 512
 DIMENSION = 8
 SQ_SIZE = HEIGHT/DIMENSION
-MAX_FPS = 60
+MAX_FPS = 15
 IMAGES = {}
 
 
@@ -65,6 +65,7 @@ def main():
                     gs.undoMove()
                     moveMade = True
                     animate = False
+                    gameOver = False
                 if e.key == p.K_r:
                     gs = EngineChess.GameState()
                     validMoves = gs.getValidMoves()
@@ -72,9 +73,12 @@ def main():
                     playerClicks = []
                     moveMade = False
                     animate = False
+                    gameOver = False
 
         if not gameOver and not humanTurn:
-            AIMove = ChessAI.findRandomMove(validMoves)
+            AIMove = ChessAI.findBestMove(gs, validMoves)
+            if AIMove is None:
+                AIMove = ChessAI.findRandomMoveMinMax(validMoves)
             gs.makeMove(AIMove)
             moveMade = True
             animate = True
