@@ -3,14 +3,14 @@ import random
 pieceScore = {"K": 0, "Q": 10, "R": 5, "B": 3, "N": 3, "p": 1}
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 2
+DEPTH = 3
 
 
 
 def findRandomMove(validMoves):
     return validMoves[random.randint(0, len(validMoves)-1)]
 
-def findBestMove(gs, validMoves):
+def findBestMoveTest(gs, validMoves):
     turnMultiplayer = 1 if gs.whiteToMove else -1
     opponentMinMaxScore = CHECKMATE
     bestPlayerMove = None
@@ -42,10 +42,15 @@ def findBestMove(gs, validMoves):
         gs.undoMove()
     return bestPlayerMove
 
-def findBestMoveMinMax(gs, validMove):
-    global nextMove
+def findBestMove(gs, validMoves):
+    global nextMove, counter
     nextMove = None
-    findMoveMinMax(gs, validMove, DEPTH, gs.whiteToMove)
+    random.shuffle(validMoves)
+    counter = 0
+    #findMoveMinMax(gs, validMoves, DEPTH, gs.whiteToMove)
+    #findMoveNegaMax(gs, validMoves, DEPTH, 1 if gs.whiteToMove else -1)
+    findMoveNegaMaxAplhaBeta(gs, validMoves, DEPTH, -CHECKMATE, CHECKMATE, 1 if gs.whiteToMove else -1)
+    print(counter)
     return nextMove
 
 def findMoveMinMax(gs, validMoves, depth, whiteToMove):
@@ -78,6 +83,50 @@ def findMoveMinMax(gs, validMoves, depth, whiteToMove):
                     nextMove = move
             gs.undoMove()
         return minScore
+
+def findMoveNegaMax(gs, validMoves, depth, turnMultiplayer):
+    global nextMove, counter
+    counter += 1
+    if depth == 0:
+        return turnMultiplayer * scoreBoard(gs)
+
+    maxScore = -CHECKMATE
+    for move in validMoves:
+        gs.makeMove(move)
+        nextMoves = gs.getValidMoves()
+        score = -findMoveNegaMax(gs, nextMoves, depth-1, -turnMultiplayer)
+        if score > maxScore:
+            maxScore = score
+            if depth == DEPTH:
+                nextMove = move
+        gs.undoMove()
+    return maxScore
+
+
+def findMoveNegaMaxAplhaBeta(gs, validMoves, depth, alpha, beta, turnMultiplayer):
+    global nextMove, counter
+    counter += 1
+    if depth == 0:
+        return turnMultiplayer * scoreBoard(gs)
+
+
+
+    maxScore = -CHECKMATE
+    for move in validMoves:
+        gs.makeMove(move)
+        nextMoves = gs.getValidMoves()
+        score = -findMoveNegaMaxAplhaBeta(gs, nextMoves, depth-1, -beta, -alpha, -turnMultiplayer)
+        if score > maxScore:
+            maxScore = score
+            if depth == DEPTH:
+                nextMove = move
+        gs.undoMove()
+        if maxScore > alpha:
+            alpha = maxScore
+        if alpha >= beta:
+            break
+    return maxScore
+
 
 
 def scoreBoard(gs):
