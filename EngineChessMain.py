@@ -1,5 +1,6 @@
 import pygame as p
 import EngineChess, ChessAI
+from multiprocessing import Process, Queue
 
 
 BOARD_WIDTH = BOARD_HEIGHT = 512
@@ -33,7 +34,9 @@ def main():
     playerClicks = []
     gameOver = False
     playerOne = True
-    playerTwo = True
+    playerTwo = False
+    AIThinking = False
+    moveFinderProcess = None
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
@@ -79,12 +82,12 @@ def main():
                     gameOver = False
 
         if not gameOver and not humanTurn:
-            AIMove = ChessAI.findBestMove(gs, validMoves)
-            if AIMove is None:
-                AIMove = ChessAI.findRandomMoveMinMax(validMoves)
-            gs.makeMove(AIMove)
-            moveMade = True
-            animate = True
+                AIMove = ChessAI.findBestMove(gs, validMoves)
+                if AIMove is None:
+                    AIMove = ChessAI.findRandomMoveMinMax(validMoves)
+                gs.makeMove(AIMove)
+                moveMade = True
+                animate = True
 
         if moveMade:
             if animate:
