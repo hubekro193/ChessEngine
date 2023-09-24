@@ -7,7 +7,7 @@ BOARD_WIDTH = BOARD_HEIGHT = 512
 MOVE_LOG_PANEL_WIDTH = 250
 MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
 DIMENSION = 8
-SQ_SIZE = BOARD_HEIGHT / DIMENSION
+SQ_SIZE = BOARD_HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 
@@ -36,14 +36,14 @@ def main():
     playerOne = True
     playerTwo = False
     AIThinking = False
-    moveFinderProcess = None
+    moveFinderProcess = False
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             elif e.type == p.MOUSEBUTTONDOWN:
-                if not gameOver and humanTurn:
+                if not gameOver:
                     location = p.mouse.get_pos()
                     col = location[0]//SQ_SIZE
                     row = location[1]//SQ_SIZE
@@ -53,7 +53,7 @@ def main():
                     else:
                         sqSelected = (row,col)
                         playerClicks.append(sqSelected)
-                    if len(playerClicks) == 2:
+                    if len(playerClicks) == 2 and humanTurn:
                         move = EngineChess.Move(playerClicks[0], playerClicks[1], gs.board)
                         print(move.getChessNotation())
                         for i in range(len(validMoves)):
@@ -82,12 +82,22 @@ def main():
                     gameOver = False
 
         if not gameOver and not humanTurn:
-                AIMove = ChessAI.findBestMove(gs, validMoves)
+            if not AIThinking:
+                AIThinking = True
+                print("thinking..")
+                returnQueue = Queue()
+                moveFinderProcess = Process(target=ChessAI.findBestMove, args=(gs, validMoves, returnQueue))
+                moveFinderProcess.start()
+
+            if not moveFinderProcess.is_alive():
+                print("done")
+                AIMove = returnQueue.get()
                 if AIMove is None:
                     AIMove = ChessAI.findRandomMoveMinMax(validMoves)
                 gs.makeMove(AIMove)
                 moveMade = True
                 animate = True
+                AIThinking = False
 
         if moveMade:
             if animate:
@@ -203,5 +213,3 @@ def drawEndGameText(screen, text):
 
 if __name__ == "__main__":
     main()
-
-main()

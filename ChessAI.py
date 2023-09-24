@@ -100,7 +100,7 @@ def findBestMoveTest(gs, validMoves):
         gs.undoMove()
     return bestPlayerMove
 
-def findBestMove(gs, validMoves):
+def findBestMove(gs, validMoves, returnQueue):
     global nextMove, counter
     nextMove = None
     random.shuffle(validMoves)
@@ -109,7 +109,7 @@ def findBestMove(gs, validMoves):
     #findMoveNegaMax(gs, validMoves, DEPTH, 1 if gs.whiteToMove else -1)
     findMoveNegaMaxAplhaBeta(gs, validMoves, DEPTH, -CHECKMATE, CHECKMATE, 1 if gs.whiteToMove else -1)
     print(counter)
-    return nextMove
+    returnQueue.put(nextMove)
 
 def findMoveMinMax(gs, validMoves, depth, whiteToMove):
     global nextMove
