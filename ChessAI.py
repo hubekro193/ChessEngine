@@ -1,4 +1,5 @@
 import random
+import chess.engine
 
 pieceScore = {"K": 0, "Q": 10, "R": 5, "B": 3, "N": 3, "p": 1}
 
@@ -184,7 +185,6 @@ def findMoveNegaMaxAplhaBeta(gs, validMoves, depth, alpha, beta, turnMultiplayer
         if alpha >= beta:
             break
     return maxScore
-
 
 
 def scoreBoard(gs):

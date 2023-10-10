@@ -37,6 +37,7 @@ def main():
     playerTwo = False
     AIThinking = False
     moveFinderProcess = False
+    moveUndone = False
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
@@ -72,6 +73,11 @@ def main():
                     moveMade = True
                     animate = False
                     gameOver = False
+                    if AIThinking:
+                        moveFinderProcess.terminate()
+                        AIThinking = False
+                    moveUndone = True
+
                 if e.key == p.K_r:
                     gs = EngineChess.GameState()
                     validMoves = gs.getValidMoves()
@@ -80,8 +86,12 @@ def main():
                     moveMade = False
                     animate = False
                     gameOver = False
+                    if AIThinking:
+                        moveFinderProcess.terminate()
+                        AIThinking = False
+                    moveUndone = True
 
-        if not gameOver and not humanTurn:
+        if not gameOver and not humanTurn and not moveUndone:
             if not AIThinking:
                 AIThinking = True
                 print("thinking..")
@@ -93,7 +103,7 @@ def main():
                 print("done")
                 AIMove = returnQueue.get()
                 if AIMove is None:
-                    AIMove = ChessAI.findRandomMoveMinMax(validMoves)
+                    AIMove = ChessAI.findRandomMove(validMoves)
                 gs.makeMove(AIMove)
                 moveMade = True
                 animate = True
@@ -105,6 +115,7 @@ def main():
             validMoves = gs.getValidMoves()
             moveMade = False
             animate = False
+            moveUndone = False
 
         drawGameState(screen, gs, validMoves, sqSelected, moveLogFont)
 
@@ -123,7 +134,7 @@ def drawGameState(screen,gs, validMoves, sqSelected, moveLogFont):
 
 def drawBoard(screen):
     global colors
-    colors = [p.Color("white"), p.Color("darkgray")]
+    colors = [p.Color(220,220,220), p.Color(113,48,152)]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r+c) % 2)]
