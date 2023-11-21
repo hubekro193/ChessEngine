@@ -1,14 +1,15 @@
 import random
+import time
 import chess.engine
 
 pieceScore = {"K": 0, "Q": 10, "R": 5, "B": 3, "N": 3, "p": 1}
 
 knightScore = [[1, 1, 1, 1, 1, 1, 1, 1],
                [1, 2, 2, 2, 2, 2, 2, 1],
-               [1, 2, 300, 3, 3, 3, 2, 1],
+               [1, 2, 3, 3, 3, 3, 2, 1],
                [1, 2, 3, 4, 4, 3, 2, 1],
                [1, 2, 3, 4, 4, 3, 2, 1],
-               [1, 2, 3, 3, 3, 300, 2, 1],
+               [1, 2, 3, 3, 3, 3, 2, 1],
                [1, 2, 2, 2, 2, 2, 2, 1],
                [1, 1, 1, 1, 1, 1, 1, 1]]
 
@@ -145,10 +146,12 @@ def findMoveMinMax(gs, validMoves, depth, whiteToMove):
 
 def findMoveNegaMax(gs, validMoves, depth, turnMultiplayer):
     global nextMove, counter
+    start = time.time()
     counter += 1
     if depth == 0:
         return turnMultiplayer * scoreBoard(gs)
-
+    end = time.time()
+    print(end- start)
     maxScore = -CHECKMATE
     for move in validMoves:
         gs.makeMove(move)
@@ -159,6 +162,8 @@ def findMoveNegaMax(gs, validMoves, depth, turnMultiplayer):
             if depth == DEPTH:
                 nextMove = move
         gs.undoMove()
+    end = time.time()
+    print(end - start)
     return maxScore
 
 
@@ -167,14 +172,12 @@ def findMoveNegaMaxAplhaBeta(gs, validMoves, depth, alpha, beta, turnMultiplayer
     counter += 1
     if depth == 0:
         return turnMultiplayer * scoreBoard(gs)
-
-
-
     maxScore = -CHECKMATE
     for move in validMoves:
         gs.makeMove(move)
         nextMoves = gs.getValidMoves()
         score = -findMoveNegaMaxAplhaBeta(gs, nextMoves, depth-1, -beta, -alpha, -turnMultiplayer)
+
         if score > maxScore:
             maxScore = score
             if depth == DEPTH:
@@ -195,6 +198,9 @@ def scoreBoard(gs):
             return CHECKMATE
     elif gs.staleMate:
         return STALEMATE
+
+
+
 
     score = 0
     for row in range(len(gs.board)):

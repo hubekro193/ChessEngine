@@ -35,7 +35,7 @@ def main():
     gameOver = False
     playerOne = True
     playerTwo = False
-    AIThinking = False
+    AITimeToWork = False
     moveFinderProcess = False
     moveUndone = False
     while running:
@@ -73,9 +73,9 @@ def main():
                     moveMade = True
                     animate = False
                     gameOver = False
-                    if AIThinking:
+                    if AITimeToWork:
                         moveFinderProcess.terminate()
-                        AIThinking = False
+                        AITimeToWork = False
                     moveUndone = True
 
                 if e.key == p.K_r:
@@ -86,15 +86,15 @@ def main():
                     moveMade = False
                     animate = False
                     gameOver = False
-                    if AIThinking:
+                    if AITimeToWork:
                         moveFinderProcess.terminate()
-                        AIThinking = False
+                        AITimeToWork = False
                     moveUndone = True
 
         if not gameOver and not humanTurn and not moveUndone:
-            if not AIThinking:
-                AIThinking = True
-                print("thinking..")
+            if not AITimeToWork:
+                AITimeToWork = True
+                print("...")
                 returnQueue = Queue()
                 moveFinderProcess = Process(target=ChessAI.findBestMove, args=(gs, validMoves, returnQueue))
                 moveFinderProcess.start()
@@ -107,7 +107,7 @@ def main():
                 gs.makeMove(AIMove)
                 moveMade = True
                 animate = True
-                AIThinking = False
+                AITimeToWork = False
 
         if moveMade:
             if animate:
@@ -134,7 +134,7 @@ def drawGameState(screen,gs, validMoves, sqSelected, moveLogFont):
 
 def drawBoard(screen):
     global colors
-    colors = [p.Color(220,220,220), p.Color(113,48,152)]
+    colors = [p.Color(220,220,220), p.Color("grey")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r+c) % 2)]
