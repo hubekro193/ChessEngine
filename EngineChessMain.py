@@ -1,12 +1,13 @@
 import pygame as p
 import EngineChess, ChessAI
+from multiprocessing import Process, Queue
 
 
 BOARD_WIDTH = BOARD_HEIGHT = 512
 MOVE_LOG_PANEL_WIDTH = 250
 MOVE_LOG_PANEL_HEIGHT = BOARD_HEIGHT
 DIMENSION = 8
-SQ_SIZE = BOARD_HEIGHT / DIMENSION
+SQ_SIZE = BOARD_HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
 
@@ -33,14 +34,17 @@ def main():
     playerClicks = []
     gameOver = False
     playerOne = True
-    playerTwo = True
+    playerTwo = False
+    AITimeToWork = False
+    moveFinderProcess = False
+    moveUndone = False
     while running:
         humanTurn = (gs.whiteToMove and playerOne) or (not gs.whiteToMove and playerTwo)
         for e in p.event.get():
             if e.type == p.QUIT:
                 running = False
             elif e.type == p.MOUSEBUTTONDOWN:
-                if not gameOver and humanTurn:
+                if not gameOver:
                     location = p.mouse.get_pos()
                     col = location[0]//SQ_SIZE
                     row = location[1]//SQ_SIZE
@@ -50,7 +54,7 @@ def main():
                     else:
                         sqSelected = (row,col)
                         playerClicks.append(sqSelected)
-                    if len(playerClicks) == 2:
+                    if len(playerClicks) == 2 and humanTurn:
                         move = EngineChess.Move(playerClicks[0], playerClicks[1], gs.board)
                         print(move.getChessNotation())
                         for i in range(len(validMoves)):
@@ -69,6 +73,11 @@ def main():
                     moveMade = True
                     animate = False
                     gameOver = False
+                    if AITimeToWork:
+                        moveFinderProcess.terminate()
+                        AITimeToWork = False
+                    moveUndone = True
+
                 if e.key == p.K_r:
                     gs = EngineChess.GameState()
                     validMoves = gs.getValidMoves()
@@ -77,14 +86,28 @@ def main():
                     moveMade = False
                     animate = False
                     gameOver = False
+                    if AITimeToWork:
+                        moveFinderProcess.terminate()
+                        AITimeToWork = False
+                    moveUndone = True
 
-        if not gameOver and not humanTurn:
-            AIMove = ChessAI.findBestMove(gs, validMoves)
-            if AIMove is None:
-                AIMove = ChessAI.findRandomMoveMinMax(validMoves)
-            gs.makeMove(AIMove)
-            moveMade = True
-            animate = True
+        if not gameOver and not humanTurn and not moveUndone:
+            if not AITimeToWork:
+                AITimeToWork = True
+                print("...")
+                returnQueue = Queue()
+                moveFinderProcess = Process(target=ChessAI.findBestMove, args=(gs, validMoves, returnQueue))
+                moveFinderProcess.start()
+
+            if not moveFinderProcess.is_alive():
+                print("done")
+                AIMove = returnQueue.get()
+                if AIMove is None:
+                    AIMove = ChessAI.findRandomMove(validMoves)
+                gs.makeMove(AIMove)
+                moveMade = True
+                animate = True
+                AITimeToWork = False
 
         if moveMade:
             if animate:
@@ -92,6 +115,7 @@ def main():
             validMoves = gs.getValidMoves()
             moveMade = False
             animate = False
+            moveUndone = False
 
         drawGameState(screen, gs, validMoves, sqSelected, moveLogFont)
 
@@ -110,7 +134,7 @@ def drawGameState(screen,gs, validMoves, sqSelected, moveLogFont):
 
 def drawBoard(screen):
     global colors
-    colors = [p.Color("white"), p.Color("darkgray")]
+    colors = [p.Color(220,220,220), p.Color("grey")]
     for r in range(DIMENSION):
         for c in range(DIMENSION):
             color = colors[((r+c) % 2)]
@@ -200,5 +224,3 @@ def drawEndGameText(screen, text):
 
 if __name__ == "__main__":
     main()
-
-main()
