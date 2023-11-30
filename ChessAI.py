@@ -198,10 +198,6 @@ def scoreBoard(gs):
             return CHECKMATE
     elif gs.staleMate:
         return STALEMATE
-
-
-
-
     score = 0
     for row in range(len(gs.board)):
         for col in range(len(gs.board[row])):
